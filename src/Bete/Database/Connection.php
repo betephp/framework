@@ -1,0 +1,236 @@
+<?php
+
+namespace Bete\Database;
+
+use PDO;
+use Closure;
+
+class Connection
+{
+
+    protected $pdo;
+
+    protected $readPdo;
+
+    protected $database;
+
+    protected $tablePrefix;
+
+    protected $reconnector;
+
+    protected $transactions = 0;
+
+    protected $fetchMode = PDO::FETCH_OBJ;
+
+    protected $fetchArgument;
+
+    public function __construct($pdo, array $config = [])
+    {
+        $this->pdo = $pdo;
+
+        if (isset($config['database'])) {
+            $this->database = $config['database'];
+        }
+
+        if (isset($config['tablePrefix'])) {
+            $this->tablePrefix = $config['tablePrefix'];
+        }
+    }
+
+    public function getTablePrefix()
+    {
+        return $this->tablePrefix;
+    }
+
+    public function table($table)
+    {
+        return $this->query()->from($table);
+    }
+
+    public function query()
+    {
+        return new QueryBuilder($this);
+    }
+
+    public function raw($value)
+    {
+        return new SqlExpression($value);
+    }
+
+    public function select($query, $bindings = [], $useReadPdo = true)
+    {
+        return $this->run($query, $bindings, 
+            function($me, $query, $bindings) use ($useReadPdo) {
+            $statement = $this->getPdoForSelect($useReadPdo)->prepare($query);
+
+            $me->bindValues($statement, $bindings);
+
+            $statement->execute();
+
+            $fetchMode = $me->getFetchMode();
+            $fetchArgument = $me->getFetchArgument();
+
+            if (isset($fetchArgument)) {
+                return $statement->fetchAll($fetchMode, $fetchArgument);
+            } else {
+                return $statement->fetchAll($fetchMode);
+            }
+        });
+    }
+
+    public function getFetchMode()
+    {
+        return $this->fetchMode;
+    }
+
+    public function getFetchArgument()
+    {
+        return $this->fetchArgument;
+    }
+
+    public function cursor($query, $bindings = [], $useReadPdo = true)
+    {
+
+    }
+
+    public function insert($query, $bindings = [])
+    {
+        return $this->statement($query, $bindings);
+    }
+
+    public function update($query, $bindings = [])
+    {
+        return $this->affectingStatement($query, $bindings);
+    }
+
+    public function delete($query, $bindings = [])
+    {
+        return $this->affectingStatement($query, $bindings);
+    }
+
+    public function statement($query, $bindings = [])
+    {
+        return $this->run($query, $bindings, function ($me, $query, $bindings) {
+            $statement = $this->getPdo()->prepare($query);
+
+            $this->bindValues($statement, $bindings);
+
+            $res = $statement->execute();
+            return $res;
+        });
+    }
+
+    public function affectingStatement($query, $bindings = [])
+    {
+        return $this->run($query, $bindings, function ($me, $query, $bindings) {
+            $statement = $me->getPdo()->prepare($query);
+
+            $this->bindValues($statement, $bindings);
+
+            $statement->execute();
+
+            return $statement->rowCount();
+        });
+    }
+
+    public function run($query, $bindings, Closure $callback)
+    {
+        $this->reconnectIfLostConnection();
+
+        try {
+            $result = $this->runQueryCallBack($query, $bindings, $callback);
+        } catch (QueryException $e) {
+            if ($this->transactions >= 1) {
+                throw $e;
+            }
+
+            // $result = $this->tryAgainIfLostConnection($e, $query, $bindings, 
+            //     $callback);
+        }
+
+        return $result;
+    }
+
+    protected function runQueryCallBack($query, $bindings, Closure $callback)
+    {
+        try {
+            $result = $callback($this, $query, $bindings);
+        } catch (Exception $e) {
+            throw new QueryException($query, $this->prepre);
+        }
+
+        return $result;
+    }
+
+    public function bindValues($statement, $bindings)
+    {
+        foreach ($bindings as $key => $value) {
+            $statement->bindValue(
+                is_string($key) ? $key : $key + 1, $value,
+                is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR
+            );
+        }
+    }
+
+    public function setReconnector(callable $reconnector)
+    {
+        $this->reconnector = $reconnector;
+
+        return $this;
+    }
+
+    protected function reconnectIfLostConnection()
+    {
+    }
+
+    public function setFetchMode($fetchMode)
+    {
+        $this->fetchMode = $fetchMode;
+    }
+
+    public function getPdoForSelect($useReadPdo = true)
+    {
+        return $useReadPdo ? $this->getReadPdo() : $this->getPdo();
+    }
+
+    public function getPdo()
+    {
+        if ($this->pdo instanceof Closure) {
+            return $this->pdo = call_user_func($this->pdo);
+        }
+
+        return $this->pdo;
+    }
+
+    public function setPdo($pdo)
+    {
+        if ($this->transactions >= 1) {
+            throw new DatabaseException("Can not switch PDO in transaction.");
+        }
+
+        $this->pdo = $pdo;
+
+        return $this;
+    }
+
+    public function getReadPdo()
+    {
+        if ($this->transactions >= 1) {
+            return $this->getPdo();
+        }
+
+        if ($this->readPdo instanceof Closure) {
+            return $this->readPdo = call_user_func($this->readPdo);
+        }
+
+        return $this->readPdo ? $this->readPdo : $this->getPdo();
+    }
+
+    public function setReadPdo()
+    {
+        $this->readPdo = $pdo;
+
+        return $this;
+    }
+
+}

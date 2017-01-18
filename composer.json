@@ -1,0 +1,29 @@
+{
+    "name": "betephp/framework",
+    "description": "The BetePHP Framework.",
+    "keywords": ["framework", "betephp"],
+    "license": "MIT",
+    "homepage": "https://betephp.com",
+    "support": {
+        "issues": "https://github.com/betephp/framework/issues",
+        "source": "https://github.com/betephp/framework"
+    },
+    "authors": [
+        {
+            "name": "Ecco Zhou",
+            "email": "eccozhou@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0"
+    },
+    "autoload": {
+        "files": [
+            "src/Bete/Support/helpers.php"
+        ],
+        "psr-4": {
+            "Bete\\": "src/Bete/"
+        }
+    },
+    "minimum-stability": "dev"
+}
