@@ -233,4 +233,86 @@ class Connection
         return $this;
     }
 
+    public function transaction(Closure $callback, $attempts = 1)
+    {
+        for ($i = 1; $i <= $attempts; $i++) {
+            $this->beginTransaction();
+            try {
+                $result = $callback($this);
+
+                $this->commit();
+            } catch (Exception $e) {
+                $this->rollBack();
+
+                if ($this->causedByDeadlock($e) && $i < $attempts) {
+                    continue;
+                }
+
+                throw $e;
+            } catch (Throwable $e) {
+                $this->rollBack();
+
+                throw $e;
+            }
+
+            return $result;
+        }
+    }
+
+    public function beginTransaction()
+    {
+        $this->transactions++;
+
+        if ($this->transactions == 1) {
+            try {
+                $this->getPdo()->beginTransaction();
+            } catch (Exception $e) {
+                $this->transactions--;
+
+                throw $e;
+            }
+        }
+    }
+
+    /**
+     * Commit the active database transaction.
+     *
+     * @return void
+     */
+    public function commit()
+    {
+        if ($this->transactions == 1) {
+            $this->getPdo()->commit();
+        }
+
+        $this->transactions = max(0, $this->transactions - 1);
+    }
+
+    /**
+     * Rollback the active database transaction.
+     *
+     * @return void
+     */
+    public function rollBack()
+    {
+        if ($this->transactions == 1) {
+            $this->getPdo()->rollBack();
+        }
+
+        $this->transactions = max(0, $this->transactions - 1);
+    }
+
+    protected function causedByDeadlock(Exception $e)
+    {
+        $message = $e->getMessage();
+
+        return Str::contains($message, [
+            'Deadlock found when trying to get lock',
+            'deadlock detected',
+            'The database file is locked',
+            'A table in the database is locked',
+            'has been chosen as the deadlock victim',
+        ]);
+    }
+
 }
