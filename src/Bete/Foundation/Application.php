@@ -81,7 +81,7 @@ class Application extends Container
 
     public function viewPath()
     {
-        return $this->appPath() . DIRECTORY_SEPARATOR . 'view';
+        return $this->basePath() . DIRECTORY_SEPARATOR . 'view';
     }
 
     public function configPath()

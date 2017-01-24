@@ -3,13 +3,12 @@
 namespace Bete\View;
 
 use Bete\Foundation\Application;
-use Bete\Web\Action;
+use Bete\Web\Controller;
+use Bete\Exception\Exception as BaseException;
 
 class View
 {
     protected $app;
-
-    protected $action;
 
     public $title;
 
@@ -23,19 +22,20 @@ class View
         return htmlspecialchars($content, ENT_QUOTES|ENT_SUBSTITUTE, 'UTF-8');
     }
 
-    public function render($view, $data = [], Action $action = null)
+    public function render($view, $data = [], Controller $controller = null)
     {
-        $this->action = $action;
+        $controller = $controller;
 
-        $content = $this->renderPartial($view, $data, $action);
+        $content = $this->renderPartial($view, $data, $controller);
 
-        return $this->renderContent($content);
+        return $this->renderContent($content, $controller);
     }
 
-    public function renderPartial($view, $data = [])
+    public function renderPartial($view, $data = [], 
+        Controller $controller = null)
     {
-        if ($this->action instanceof Action) {
-            $this->title = $this->action->title;
+        if ($controller instanceof Controller) {
+            $this->title = $controller->title;
         }
 
         $data['errors'] = [];
@@ -43,30 +43,42 @@ class View
             $data = array_merge($data, ['errors' => $errors]);
         }
 
-        $file = $this->getViewFile($view);
+        $file = $this->getViewFile($view, $controller);
+
+        if (!file_exists($file)) {
+            throw new BaseException("The view file {$file} doesn't exists.");
+        }
 
         return $this->renderFile($file, $data); 
     }
 
-    protected function getViewFile($view)
+    protected function getViewFile($view, Controller $controller = null)
     {
-        return $this->app->make('path.view') . '/' . $view . '.php';
+        $viewPath = $this->app->make('path.view');
+
+        if ($controller instanceof Controller) {
+            $file = $viewPath . '/' . $controller->id . '/' . $view;
+        } else {
+            $file = $viewPath . "/{$view}";
+        }
+
+        return $file . '.php';
     }
 
-    protected function renderContent($content)
+    protected function renderContent($content, Controller $controller = null)
     {
-        $layoutFile = $this->getLayoutFile();
-        if ($layoutFile !== false) {
+        $layoutFile = $this->getLayoutFile($controller);
+        if (!empty($layoutFile)) {
             $data = ['content' => $content];
             return $this->renderFile($layoutFile, $data);
         } else {
             return $content;
         }
     }
-    protected function getLayoutFile()
+    protected function getLayoutFile(Controller $controller = null)
     {
-        if ($this->action !== null && !empty($this->action->layout)) {
-            $layout = $this->action->layout;
+        if ($controller !== null && !empty($controller->layout)) {
+            $layout = $controller->layout;
 
             return $this->app->make('path.view') . "/layout/{$layout}.php";
         }

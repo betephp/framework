@@ -24,12 +24,12 @@ class Middleware
         return isset($this->params[$num]) ? $this->params[$num] : $defaultValue;
     }
 
-    public function beforeAction($action)
+    public function beforeAction()
     {
         return true;
     }
 
-    public function afterAction($action, $result)
+    public function afterAction($result)
     {
         return $result;
     }

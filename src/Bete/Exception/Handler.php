@@ -2,7 +2,6 @@
 
 namespace Bete\Exception;
 
-use Exception;
 use Bete\Foundation\Application;
 use Bete\Log\Log;
 use Bete\Exception\ValidationException;
@@ -19,7 +18,7 @@ class Handler
         $this->app = $app;
     }
 
-    public function report(Exception $e)
+    public function report(\Exception $e)
     {
         if ($this->shouldntReport($e)) {
             return;
@@ -28,7 +27,7 @@ class Handler
         Log::error($e);
     }
 
-    public function shouldntReport(Exception $e)
+    public function shouldntReport(\Exception $e)
     {
         $dontReport = array_merge(
             $this->dontReport, ['Bete\Exception\WebException']);
@@ -42,12 +41,12 @@ class Handler
         return false;
     }
 
-    public function renderForConsole(Exception $e)
+    public function renderForConsole(\Exception $e)
     {
         return $this->renderConsoleException($e);
     }
 
-    public function renderConsoleException(Exception $e)
+    public function renderConsoleException(\Exception $e)
     {
         if ($e instanceof ConsoleMakeException) {
             return "Error: " . $e->getMessage() . "\n";
@@ -57,7 +56,7 @@ class Handler
     }
 
 
-    public function renderForWeb(Exception $e)
+    public function renderForWeb(\Exception $e)
     {
         if ($e instanceof ValidationException) {
             return $this->renderValidationException($e);
@@ -80,7 +79,7 @@ class Handler
         }
     }
 
-    public function renderJsonException(Exception $e)
+    public function renderJsonException(\Exception $e)
     {
         if ($e instanceof ValidationException) {
             $data = $e->validator;
@@ -91,7 +90,7 @@ class Handler
         return $this->app->response->json($data, $e->getCode(), $e->getMessage());
     }
 
-    public function renderHtmlException(Exception $e)
+    public function renderHtmlException(\Exception $e)
     {
         $data = [
             'message' => $e->getMessage(),

@@ -85,15 +85,19 @@ class Route
             }
         }
 
-        $pathInfo = explode('/', $pathInfo);
-        if ($pathInfo[0] === '') {
-            $pathInfo[0] = $this->defaultRoute;
-        }
-        if (!isset($pathInfo[1]) || empty($pathInfo[1])) {
-            $pathInfo[1] = 'index';
-        }
+        // $pathInfo = explode('/', $pathInfo);
+        // if ($pathInfo[0] === '') {
+        //     $pathInfo[0] = $this->defaultRoute;
+        // }
+        // if (!isset($pathInfo[1]) || empty($pathInfo[1])) {
+        //     $pathInfo[1] = 'index';
+        // }
 
-        $pathInfo = implode('/', $pathInfo);
+        // $pathInfo = implode('/', $pathInfo);
+
+        if ($pathInfo === '') {
+            $pathInfo = $this->defaultRoute;
+        }
 
         return [$pathInfo, $params];
     }

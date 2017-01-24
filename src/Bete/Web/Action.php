@@ -28,6 +28,11 @@ abstract class Action
 
     abstract function run(Request $request);
 
+    public function run(array $params = [])
+    {
+        return call_user
+    }
+
     public function middlewares()
     {
         return [];
