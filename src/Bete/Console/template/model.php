@@ -6,5 +6,5 @@ use Bete\Database\Model;
 
 class {{model}} extends Model
 {
-
+    public $table = '{{table}}';
 }

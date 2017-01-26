@@ -27,14 +27,14 @@ class Route
         $this->prepare($this->app['config']['route']);
     }
 
-    public function prepare($config)
+    protected function prepare($config)
     {
         $this->defaultRoute = $config['default'];
 
         $this->prepareRules($config['rules']);
     }
 
-    public function prepareRules(array $rules)
+    protected function prepareRules(array $rules)
     {
         $theRules = [];
         foreach ($rules as $pattern => $route) {
@@ -84,16 +84,6 @@ class Route
                 return [$rule['route'], $params];
             }
         }
-
-        // $pathInfo = explode('/', $pathInfo);
-        // if ($pathInfo[0] === '') {
-        //     $pathInfo[0] = $this->defaultRoute;
-        // }
-        // if (!isset($pathInfo[1]) || empty($pathInfo[1])) {
-        //     $pathInfo[1] = 'index';
-        // }
-
-        // $pathInfo = implode('/', $pathInfo);
 
         if ($pathInfo === '') {
             $pathInfo = $this->defaultRoute;

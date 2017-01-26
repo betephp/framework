@@ -5,8 +5,9 @@ namespace Bete\Bootstrap;
 use Bete\Foundation\Application;
 use Bete\Support\ComponentRepository;
 use Bete\Web\Request;
-use App\Web\Response;
+use Bete\Web\Response;
 use Bete\Web\Route;
+use Bete\View\View;
 
 class RegisterWebComponents
 {

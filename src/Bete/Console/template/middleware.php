@@ -6,12 +6,12 @@ use Bete\Foundation\Middleware;
 
 class {{middleware}} extends Middleware
 {
-    public function beforeAction($action)
+    public function beforeAction()
     {
         return true;
     }
 
-    public function afterAction($action, $result)
+    public function afterAction($result)
     {
         return $result;
     }

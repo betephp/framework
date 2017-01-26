@@ -22,6 +22,17 @@ class View
         return htmlspecialchars($content, ENT_QUOTES|ENT_SUBSTITUTE, 'UTF-8');
     }
 
+    public function json($data, $code = 0, $message = 'OK')
+    {
+        $result = [
+            'code' => $code,
+            'message' => $message,
+            'data' => $data,
+        ];
+
+        return json_encode($result);
+    }
+
     public function render($view, $data = [], Controller $controller = null)
     {
         $controller = $controller;

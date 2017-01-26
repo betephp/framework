@@ -56,33 +56,55 @@ class Core
     {
         list($pathInfo, $params) = $this->app->route->resolve();
 
-        echo $this->runAction($pathInfo, $params);
+        echo $this->handleRequest($pathInfo, $params);
     }
 
-    public function runAction($pathInfo, $params = [])
+    public function handleRequest($route, $params = [])
     {
-        $action = explode('/', $pathInfo);
+        if (count(explode('/', $route)) > 2) {
+            throw new ConsoleException("The pathinfo only support two level.");
+        }
 
-        if (count($action) > 2) {
-            throw new WebException("The pathinfo only support two level.");
+        $pat = '/^[a-zA-Z][a-zA-Z0-9_]*(\/[a-zA-Z][a-zA-Z0-9_]*)?$/';
+        if (!preg_match($pat, $route)) {
+            throw new ConsoleException("The url format is illegal.");
+        }
+
+        $info = $this->createController($route);
+
+        list($controller, $actionId) = $info;
+        
+        $result = $controller->run($actionId, $params);
+
+        return $result;
+    }
+
+    public function createController($route)
+    {
+        if (strpos($route, '/') !== false) {
+            list ($id, $route) = explode('/', $route, 2);
+        } else {
+            $id = $route;
+            $route = '';
+        }
+
+        if (strtolower($id) === 'make') {
+            $class = 'Bete\\Console\\MakeController';
+        } else {
+            $class = 'App\\Console\\' . ucfirst($id . 'Controller');
         }
         
-        foreach ($action as $key => $value) {
-            $action[$key] = ucfirst($value);
+        if (!class_exists($class)) {
+            throw new Exception("{$class} doesn't exists.");
         }
-        if (in_array(implode('\\', $action), $this->internalActions)) {
-            $class = 'Bete\\Console\\Action\\' . implode('\\', $action);
-        } else {
-            $class = 'App\\Console\\' . implode('\\', $action);
-        }
-
-        try {
-            $action = $this->app->make($class);
-        } catch (\Exception $e) {
-            throw new ConsoleException("Not Found");
+        
+        if (is_subclass_of($class, 'Bete\\Console\\Controller')) {
+            $instance = $this->app->make($class, [$this->app, $id]);
+            return [$instance, $route];
         }
 
-        return $action->run($this->app->request);
+        throw new ConsoleException(
+            "Controller must extend from Bete\Web\Controller.");
     }
 
 }

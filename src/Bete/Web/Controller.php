@@ -3,6 +3,7 @@
 namespace Bete\Web;
 
 use Bete\Foundation\Application;
+use Bete\Exception\WebException;
 
 class Controller
 {
@@ -30,16 +31,6 @@ class Controller
         $this->id = $id;
     }
 
-    public function render($view, $data = [])
-    {
-        return $this->app->view->render($view, $data, $this);
-    }
-
-    public function json($data, $code = 0, $message = 'OK')
-    {
-        return $this->app->response->json($data, $code, $message);
-    }
-
     public function run($actionId, array $params = [])
     {
         if ($actionId === '') {
@@ -47,8 +38,6 @@ class Controller
         }
 
         $middlewares = $this->getMiddlewares($this->middlewares, $actionId);
-
-        $middlewares = $this->makeMiddlewares($middlewares);
 
         if (is_array($middlewares)) {
             foreach ($middlewares as $middleware) {
@@ -84,7 +73,7 @@ class Controller
             }
         }
 
-        return null;
+        throw new WebException("Can not find {$actionId} action.");
     }
 
     public function getMiddlewares(array $rules, $action)
@@ -92,15 +81,15 @@ class Controller
         $middlewares = [];
 
         foreach ($rules as $middleware => $rule) {
-            if ($this->determineRule($action, $rule)) {
-
+            if ($this->determineRule($rule, $action)) {
+                $middlewares[] = $this->makeMiddleware($middleware);
             }
         }
 
-        return $this->makeMiddlewares($middlewares);
+        return $middlewares;
     }
 
-    public function determineRule($name, $rule)
+    public function determineRule($rule, $name)
     {
         $rule = str_replace(' ', '', $rule);
 
@@ -108,7 +97,7 @@ class Controller
             return true;
         } elseif (preg_match('/^([\w*,]+)(-([\w,]+))?$/', $rule, $matches)) {
             $allows = explode(',', $matches[1]);
-            $excepts = isset($matches[2]) ? explode(',', $matches[2]) : [];
+            $excepts = isset($matches[3]) ? explode(',', $matches[3]) : [];
 
             if ((in_array('*', $allows) || in_array($name, $allows))
                 && !in_array($name, $excepts)) {
@@ -116,25 +105,34 @@ class Controller
             } else {
                 return false;
             }
-        } else {
-            throw new Exception("Can not determine rule: {$rule}.");
         }
+
+        throw new WebException("Can not determine rule: {$rule}.");
     }
 
-    public function makeMiddlewares(array $middlewares)
+    public function makeMiddleware($middleware)
     {
-        $instances = [];
-        foreach ($middlewares as $middleware) {
-            $explode = explode(':', $middleware);
-            $instance = $this->app->make($explode[0]);
+        $explode = explode(':', $middleware);
+        $class = 'App\\Middleware\\' . $explode[0];
 
-            if (isset($explode[1]) && !empty($explode[1])) {
-                $params = explode(',', $explode[1]);
-                $instance->setParams($params);
-            }
+        $instance = $this->app->make($class);
 
-            $instances[] = $instance;
+        if (isset($explode[1]) && !empty($explode[1])) {
+            $params = explode(',', $explode[1]);
+            $instance->setParams($params);
         }
-        return $instances;
+
+        return $instance;
     }
+
+    public function render($view, $data = [])
+    {
+        return $this->app->view->render($view, $data, $this);
+    }
+
+    public function renderPartial($view, $data = [])
+    {
+        return $this->app->view->renderPartial($view, $data, $this);
+    }
+
 }

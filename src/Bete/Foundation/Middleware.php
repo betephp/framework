@@ -4,7 +4,7 @@ namespace Bete\Foundation;
 
 class Middleware
 {
-    protected $params;
+    protected $params = [];
 
     public function setParams($params)
     {

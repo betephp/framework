@@ -24,16 +24,4 @@ class Response
     {
         return $this->redirect($this->request->getUrl());
     }
-
-    public function json($data, $message = 'OK', $code = 0)
-    {
-        $result = [
-            'code' => $code,
-            'message' => $message,
-            'data' => $data,
-        ];
-
-        return json_encode($result);
-    }
-
 }

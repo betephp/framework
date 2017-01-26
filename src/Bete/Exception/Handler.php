@@ -48,11 +48,7 @@ class Handler
 
     public function renderConsoleException(\Exception $e)
     {
-        if ($e instanceof ConsoleMakeException) {
-            return "Error: " . $e->getMessage() . "\n";
-        }
-
-        return $this->getExceptionMessage($e);
+        return "Error: " . $e->getMessage() . "\n";
     }
 
 
@@ -60,6 +56,9 @@ class Handler
     {
         if ($e instanceof ValidationException) {
             return $this->renderValidationException($e);
+        } elseif ($e instanceof WebNotFoundException) {
+            $statusCode = $e->statusCode;
+            header("HTTP/1.0 {$statusCode} NOT FOUND");
         }
 
         if ($this->app->request->acceptsJson()) {

@@ -2,10 +2,11 @@
 
 namespace Bete\Bootstrap;
 
-use Bete\Foundation\Application;
 use Exception;
 use ErrorException;
+use Bete\Foundation\Application;
 use Bete\Exception\FatalErrorException;
+use App\View\View;
 
 class HandleException
 {
@@ -20,6 +21,10 @@ class HandleException
     {
         error_reporting(-1);
 
+        $this->app->singleton('view', function($app) {
+            return new View($app);
+        });
+
         set_error_handler([$this, 'handleError']);
 
         set_exception_handler([$this, 'handleException']);
@@ -31,7 +36,8 @@ class HandleException
         }
     }
 
-    public function handleError($level, $message, $file = '', $line = 0, $context = [])
+    public function handleError($level, $message, $file = '', 
+        $line = 0, $context = [])
     {
         if (error_reporting() & $level) {
             throw new ErrorException($message, 0, $level, $file, $line);
@@ -61,20 +67,22 @@ class HandleException
 
     public function handleShutdown()
     {
-        if (!is_null($error = error_get_last()) && $this->isFatal($error['type'])) {
+        if (!is_null($error = error_get_last()) 
+            && $this->isFatal($error['type'])) {
             $this->handleException($this->fatalExceptionFromError($error));
         }
     }
 
     protected function isFatal($type)
     {
-        return in_array($type, [E_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_PARSE]);
+        return in_array($type, 
+            [E_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_PARSE]);
     }
 
     public function fatalExceptionFromError(array $error)
     {
-        return new FatalErrorException(
-            $error['message'], $error['type'], 0, $error['file'], $error['line']);
+        return new FatalErrorException($error['message'], 
+            $error['type'], 0, $error['file'], $error['line']);
     }
 
     public function getExceptionHandler()

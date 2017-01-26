@@ -145,6 +145,16 @@ class Request
             $_SERVER['HTTP_REFERER'] : null;
     }
 
+    public function getProtocal()
+    {
+        if (isset($_SERVER['SERVER_PROTOCOL']) 
+            && $_SERVER['SERVER_PROTOCOL'] === 'HTTP/1.0') {
+            return 'HTTP/1.0';
+        } else {
+            return 'HTTP/1.1';
+        }
+    }
+
     public function acceptHeader()
     {
         return isset($_SERVER['HTTP_ACCEPT']) ? $_SERVER['HTTP_ACCEPT'] : '';
