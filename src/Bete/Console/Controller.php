@@ -32,12 +32,10 @@ class Controller
 
     public function runAction($actionId)
     {
-        if (preg_match('/^[a-zA-Z0-9-_]+$/', $actionId) 
-            && strpos($actionId, '--') === false 
-            && trim($actionId, '-') === $actionId) {
+        if (preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $actionId)) {
 
-            $methodName = 'action' . str_replace(' ', '', 
-                ucwords(implode(' ', explode('-', $actionId))));
+            $methodName = 'action' . ucfirst($actionId);
+
             if (method_exists($this, $methodName)) {
                 $method = new \ReflectionMethod($this, $methodName);
                 if ($method->isPublic() && $method->getName() === $methodName) {
