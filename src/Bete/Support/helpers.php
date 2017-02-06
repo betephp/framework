@@ -19,7 +19,7 @@ if (!function_exists('ini')) {
         $file = app('path.config') . DIRECTORY_SEPARATOR . 'app.ini';
 
         if (!file_exists($file)) {
-            exit("The config/app.ini file doesn't exist.");
+            exit("The config/app.ini file doesn't exist.\n");
         }
 
         $config = parse_ini_file($file);
