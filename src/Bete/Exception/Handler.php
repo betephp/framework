@@ -18,7 +18,7 @@ class Handler
         $this->app = $app;
     }
 
-    public function report(\Exception $e)
+    public function report($e)
     {
         if ($this->shouldntReport($e)) {
             return;
@@ -27,7 +27,7 @@ class Handler
         Log::error($e);
     }
 
-    public function shouldntReport(\Exception $e)
+    public function shouldntReport($e)
     {
         $dontReport = array_merge(
             $this->dontReport, ['Bete\Exception\WebException']);
@@ -41,18 +41,18 @@ class Handler
         return false;
     }
 
-    public function renderForConsole(\Exception $e)
+    public function renderForConsole($e)
     {
         return $this->renderConsoleException($e);
     }
 
-    public function renderConsoleException(\Exception $e)
+    public function renderConsoleException($e)
     {
         return "Error: " . $e->getMessage() . "\n";
     }
 
 
-    public function renderForWeb(\Exception $e)
+    public function renderForWeb($e)
     {
         if ($e instanceof ValidationException) {
             return $this->renderValidationException($e);
@@ -78,7 +78,7 @@ class Handler
         }
     }
 
-    public function renderJsonException(\Exception $e)
+    public function renderJsonException($e)
     {
         if ($e instanceof ValidationException) {
             $data = $e->validator;
@@ -89,7 +89,7 @@ class Handler
         return $this->app->response->json($data, $e->getCode(), $e->getMessage());
     }
 
-    public function renderHtmlException(\Exception $e)
+    public function renderHtmlException($e)
     {
         $data = [
             'message' => $e->getMessage(),
