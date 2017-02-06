@@ -401,37 +401,6 @@ class Validator
         return preg_match("/^[\x7f-\xff]+$/", $value);
     }
 
-    protected function validateIdCard($attribute, $value)
-    {
-        if (!preg_match('/^\d{17}[0-9xX]$/', $value)) {
-            return false;
-        }
-
-        $parsed = date_parse(substr($value, 6, 8));
-        if (!(isset($parsed['warning_count']) 
-            && $parsed['warning_count'] == 0)) {
-            return false;
-        }
-
-        $base = substr($value, 0, 17);
-
-        $factor = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2];
-
-        $tokens = ['1', '0', 'X', '9', '8', '7', '6', '5', '4', '3', '2'];
-
-        $checkSum = 0;
-        for ($i=0; $i<17; $i++) {
-            $checkSum += intval(substr($base, $i, 1)) * $factor[$i];
-        }
-
-        $mod = $checkSum % 11;
-        $token = $tokens[$mod];
-
-        $lastChar = strtoupper(substr($value, 17, 1));
-
-        return ($lastChar === $token);
-    }
-
     protected function validateIp($attribute, $value)
     {
         return filter_var($value, FILTER_VALIDATE_IP) !== false;
@@ -457,11 +426,6 @@ class Validator
         }
 
         return preg_match($parameters[0], $value) > 0;
-    }
-
-    protected function validateMobile($attribute, $value, $parameters)
-    {
-        return preg_match('/^1[0-9]{10}$/', $value);
     }
 
     protected function validateDate($attribute, $value)
