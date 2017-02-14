@@ -60,7 +60,7 @@ class Core
 
     public function handleRequest($route, $params = [])
     {
-        $pat = '/^[a-zA-Z_][a-zA-Z0-9_]*(\/[a-zA-Z_][a-zA-Z0-9-_]*)?$/';
+        $pat = '/^[a-zA-Z_][a-zA-Z0-9_]*(\/([a-zA-Z_][a-zA-Z0-9-_]*)?)?$/';
         if (!preg_match($pat, $route)) {
             throw new WebNotFoundException(
                 "The controller/action should follow class convention.");

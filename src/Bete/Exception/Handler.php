@@ -29,8 +29,7 @@ class Handler
 
     public function shouldntReport($e)
     {
-        $dontReport = array_merge(
-            $this->dontReport, ['Bete\Exception\WebException']);
+        $dontReport = array_merge($this->dontReport);
 
         foreach ($dontReport as $exception) {
             if ($e instanceof $exception) {
@@ -59,6 +58,7 @@ class Handler
         } elseif ($e instanceof WebNotFoundException) {
             $statusCode = $e->statusCode;
             header("HTTP/1.0 {$statusCode} NOT FOUND");
+            exit("NOT FOUND");
         }
 
         if ($this->app->request->acceptsJson()) {
@@ -86,17 +86,18 @@ class Handler
             $data = '';
         }
 
-        return $this->app->response->json($data, $e->getCode(), $e->getMessage());
+        return $this->app->view->json($data, $e->getCode(), $e->getMessage());
     }
 
     public function renderHtmlException($e)
     {
         $data = [
-            'message' => $e->getMessage(),
-            'trace' => '',
+            'message' => null,
+            'trace' => null,
         ];
 
         if ($this->app->env('dev', 'test')) {
+            $data['message'] = $e->getMessage();
             $data['trace'] = nl2br($this->getExceptionMessage($e));
         }
 

@@ -6,7 +6,6 @@ use Exception;
 use ErrorException;
 use Bete\Foundation\Application;
 use Bete\Exception\FatalErrorException;
-use App\View\View;
 
 class HandleException
 {
@@ -20,10 +19,6 @@ class HandleException
     public function bootstrap()
     {
         error_reporting(-1);
-
-        $this->app->singleton('view', function($app) {
-            return new View($app);
-        });
 
         set_error_handler([$this, 'handleError']);
 

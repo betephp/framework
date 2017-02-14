@@ -4,6 +4,7 @@ namespace Bete\Web;
 
 use Bete\Foundation\Application;
 use Bete\Exception\WebException;
+use Bete\Exception\WebNotFoundException;
 
 class Controller
 {
@@ -73,7 +74,7 @@ class Controller
             }
         }
 
-        throw new WebException("Can not find {$actionId} action.");
+        throw new WebNotFoundException("Can not find {$actionId} action.");
     }
 
     public function getMiddlewares(array $rules, $action)
@@ -133,6 +134,11 @@ class Controller
     public function renderPartial($view, $data = [])
     {
         return $this->app->view->renderPartial($view, $data, $this);
+    }
+
+    public function json($data, $code = 0, $message = 'OK')
+    {
+        return $this->app->view->json($data, $code, $message);
     }
 
 }
