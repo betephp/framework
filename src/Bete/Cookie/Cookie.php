@@ -21,12 +21,6 @@ class Cookie
             return $defaultValue;
         }
 
-        try {
-            $value = $this->app->encrypt->decrypt($value);
-        } catch (Exception $e) {
-            $value = $defaultValue;
-        }
-
         return $value;
     }
 
@@ -35,8 +29,6 @@ class Cookie
         if ($expire < (86400 * 30)) {
             $expire += time();
         }
-
-        $value = $this->app->encrypt->encrypt($value);
 
         return setcookie($name, $value, $expire, '/', '', false, true);
     }
