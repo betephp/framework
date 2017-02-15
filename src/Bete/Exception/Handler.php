@@ -58,7 +58,7 @@ class Handler
         } elseif ($e instanceof WebNotFoundException) {
             $statusCode = $e->statusCode;
             header("HTTP/1.0 {$statusCode} NOT FOUND");
-            exit("NOT FOUND");
+            return $this->renderHtmlException($e);
         }
 
         if ($this->app->request->acceptsJson()) {
@@ -80,18 +80,27 @@ class Handler
 
     public function renderJsonException($e)
     {
+        $message = 'Whoops, something went wrong.';
+
         if ($e instanceof ValidationException) {
             $data = $e->validator;
         } else {
             $data = '';
         }
 
-        return $this->app->view->json($data, $e->getCode(), $e->getMessage());
+        return $this->app->view->json($data, $e->getCode(), $message);
     }
 
     public function renderHtmlException($e)
     {
+        if ($e instanceof WebNotFoundException) {
+            $title = 'Not Found';
+        } else {
+            $title = 'Whoops, something went wrong.';
+        }
+
         $data = [
+            'title' => $title,
             'message' => null,
             'trace' => null,
         ];
