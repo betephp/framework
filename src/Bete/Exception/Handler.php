@@ -105,7 +105,7 @@ class Handler
             'trace' => null,
         ];
 
-        if ($this->app->env('dev', 'test')) {
+        if ($this->app->env('dev')) {
             $data['message'] = $e->getMessage();
             $data['trace'] = nl2br($this->getExceptionMessage($e));
         }
@@ -115,15 +115,10 @@ class Handler
 
     public function getExceptionMessage($exception)
     {
-        if ($this->app->env('dev', 'test')) {
-            $message = "Exception '" . get_class($exception) 
-                . "' with message '{$exception->getMessage()}'\nin "
-                . $exception->getFile() . ':' . $exception->getLine()
-                . "\nStack trace:\n" . $exception->getTraceAsString();
-        } else {
-            $message = 'Error ' . $exception->getMessage();
-        }
-
+        $message = "Exception '" . get_class($exception) 
+            . "' with message '{$exception->getMessage()}'\nin "
+            . $exception->getFile() . ':' . $exception->getLine()
+            . "\nStack trace:\n" . $exception->getTraceAsString();
         return $message;
     }
 
