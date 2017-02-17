@@ -17,12 +17,20 @@
     "require": {
         "php": ">=5.4.0"
     },
+    "require-dev": {
+        "phpunit/phpunit": "~4.4"
+    },
     "autoload": {
         "files": [
             "src/Bete/Support/helpers.php"
         ],
         "psr-4": {
             "Bete\\": "src/Bete/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Bete\\Tests\\": "tests/"
         }
     },
     "minimum-stability": "dev"
