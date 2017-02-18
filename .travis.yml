@@ -9,4 +9,4 @@ env:
   global:
     - setup=basic
 
-script: vendor/bin/phpunit
+script: phpunit
