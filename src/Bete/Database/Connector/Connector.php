@@ -3,6 +3,7 @@
 namespace Bete\Database\Connector;
 
 use PDO;
+use Bete\Support\Arr;
 
 class Connector
 {
@@ -14,7 +15,13 @@ class Connector
 
     protected $password;
 
-    protected $options = [];
+    protected $options = [
+        PDO::ATTR_CASE => PDO::CASE_NATURAL,
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_ORACLE_NULLS => PDO::NULL_NATURAL,
+        PDO::ATTR_STRINGIFY_FETCHES => false,
+        PDO::ATTR_EMULATE_PREPARES => false,
+    ];
 
     // abstract public function getDsn();
 
@@ -40,7 +47,9 @@ class Connector
         }
         
         if (isset($config['options'])) {
-            $this->options = $config['options'];
+            $options = Arr::get($config, 'options', []);
+
+            $this->options = array_diff_key($this->options, $options) + $options;
         }
     }
 

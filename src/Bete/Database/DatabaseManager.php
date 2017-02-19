@@ -4,6 +4,7 @@ namespace Bete\Database;
 
 use Bete\Foundation\Application;
 use Bete\Support\Arr;
+use Bete\Database\ConnectionFactory;
 
 class DatabaseManager
 {
@@ -14,10 +15,10 @@ class DatabaseManager
 
     protected $connections;
 
-    public function __construct(Application $app)
+    public function __construct(Application $app, ConnectionFactory $factory)
     {
         $this->app = $app;
-        $this->factory = new ConnectionFactory($app);
+        $this->factory = $factory;
     }
 
     public function connection($name = null)
@@ -38,17 +39,6 @@ class DatabaseManager
         $name = $name ? $name : $this->getDefaultConnection();
     }
 
-    protected function setPdoForType(Connection $connection, $type = null)
-    {
-        if ($type == 'read') {
-            $connection->setPdo($connection->getReadPdo());
-        } elseif ($type == 'write') {
-            $connection->setReadPdo($connection->getPdo());
-        }
-
-        return $connection;
-    }
-
     protected function makeConnection($name)
     {
         $config = $this->getConfig($name);
@@ -60,11 +50,50 @@ class DatabaseManager
     {
         $connection->setFetchMode($this->app['config']['database.fetch']);
 
-        $connection->setReconnector(function($connection) {
+        $connection->setReconnector(function ($connection) {
             $this->reconnect($connection->getName());
         });
 
         return $connection;
+    }
+
+    protected function setPdoForType(Connection $connection, $type = null)
+    {
+        if ($type == 'read') {
+            $connection->setPdo($connection->getReadPdo());
+        } elseif ($type == 'write') {
+            $connection->setReadPdo($connection->getPdo());
+        }
+
+        return $connection;
+    }
+
+    public function reconnect($name = null)
+    {
+        $name = $this->getConnectionName($name);
+        $this->disconnect($name);
+
+        if (!isset($this->connections[$name])) {
+            return $this->connection($name);
+        }
+
+        return $this->refreshPdoConnections($name);
+    }
+
+    protected function refreshPdoConnections($name)
+    {
+        $fresh = $this->makeConnection($name);
+
+        return $this->connections[$name]
+            ->setPdo($fresh->getPdo())
+            ->setReadPdo($fresh->getReadPdo());
+    }
+
+    public function disconnect($name = null)
+    {
+        if (isset($this->connections[$name = $name ? $name : $this->getDefaultConnection()])) {
+            $this->connections[$name]->disconnect();
+        }
     }
 
     protected function getConfig($name)
@@ -92,12 +121,14 @@ class DatabaseManager
 
     public function supportedDrivers()
     {
-        return ['mysql', 'pgsql', 'sqlite', 'sqlsrv'];
+        // return ['mysql', 'pgsql', 'sqlite', 'sqlsrv'];
+        return ['mysql'];
     }
 
     public function availableDrivers()
     {
-        return array_intersect($this->supportedDrivers(), str_replace('dblib', 'sqlsrv', PDO::getAvailableDrivers()));
+        return array_intersect($this->supportedDrivers(), 
+            str_replace('dblib', 'sqlsrv', PDO::getAvailableDrivers()));
     }
 
     public function getConnections()

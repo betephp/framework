@@ -4,6 +4,10 @@ namespace Bete\Database;
 
 use PDO;
 use Closure;
+use Exception;
+use Bete\Support\Str;
+use Bete\Support\Arr;
+use Bete\Exception\QueryException;
 
 class Connection
 {
@@ -11,6 +15,8 @@ class Connection
     protected $pdo;
 
     protected $readPdo;
+
+    protected $config;
 
     protected $database;
 
@@ -27,6 +33,8 @@ class Connection
     public function __construct($pdo, array $config = [])
     {
         $this->pdo = $pdo;
+
+        $this->config = $config;
 
         if (isset($config['database'])) {
             $this->database = $config['database'];
@@ -144,11 +152,23 @@ class Connection
                 throw $e;
             }
 
-            // $result = $this->tryAgainIfLostConnection($e, $query, $bindings, 
-            //     $callback);
+            $result = $this->tryAgainIfLostConnection(
+                $e, $query, $bindings, $callback);
         }
 
         return $result;
+    }
+
+    protected function tryAgainIfLostConnection(
+        QueryException $e, $query, $bindings, Closure $callback)
+    {
+        if ($this->causedByLostConnection($e->getPrevious())) {
+            $this->reconnect();
+
+            return $this->runQueryCallback($query, $bindings, $callback);
+        }
+
+        throw $e;
     }
 
     protected function runQueryCallBack($query, $bindings, Closure $callback)
@@ -156,7 +176,7 @@ class Connection
         try {
             $result = $callback($this, $query, $bindings);
         } catch (Exception $e) {
-            throw new QueryException($query, $this->prepre);
+            throw new QueryException($query, $bindings, $e);
         }
 
         return $result;
@@ -172,11 +192,25 @@ class Connection
         }
     }
 
+    public function disconnect()
+    {
+        $this->setPdo(null)->setReadPdo(null);
+    }
+
     public function setReconnector(callable $reconnector)
     {
         $this->reconnector = $reconnector;
 
         return $this;
+    }
+
+    public function reconnect()
+    {
+        if (is_callable($this->reconnector)) {
+            return call_user_func($this->reconnector, $this);
+        }
+
+        throw new DatabaseException('Lost all the connection.');
     }
 
     protected function reconnectIfLostConnection()
@@ -226,7 +260,7 @@ class Connection
         return $this->readPdo ? $this->readPdo : $this->getPdo();
     }
 
-    public function setReadPdo()
+    public function setReadPdo($pdo)
     {
         $this->readPdo = $pdo;
 
@@ -302,6 +336,16 @@ class Connection
         $this->transactions = max(0, $this->transactions - 1);
     }
 
+    public function getName()
+    {
+        return $this->getConfig('name');
+    }
+
+    public function getConfig($option)
+    {
+        return Arr::get($this->config, $option);
+    }
+
     protected function causedByDeadlock(Exception $e)
     {
         $message = $e->getMessage();
@@ -312,6 +356,24 @@ class Connection
             'The database file is locked',
             'A table in the database is locked',
             'has been chosen as the deadlock victim',
+        ]);
+    }
+
+    protected function causedByLostConnection(Exception $e)
+    {
+        $message = $e->getMessage();
+
+        return Str::contains($message, [
+            'server has gone away',
+            'no connection to the server',
+            'Lost connection',
+            'is dead or not enabled',
+            'Error while sending',
+            'decryption failed or bad record mac',
+            'server closed the connection unexpectedly',
+            'SSL connection has been closed unexpectedly',
+            'Error writing data to the connection',
+            'Resource deadlock avoided',
         ]);
     }
 
