@@ -2,7 +2,7 @@
 
 namespace Bete\Exception;
 
-class WebException extends \Exception
+class HttpException extends \Exception
 {
 
     public $statusCode;

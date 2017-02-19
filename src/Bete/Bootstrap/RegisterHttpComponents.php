@@ -4,12 +4,12 @@ namespace Bete\Bootstrap;
 
 use Bete\Foundation\Application;
 use Bete\Support\ComponentRepository;
-use Bete\Web\Request;
-use Bete\Web\Response;
-use Bete\Web\Route;
+use Bete\Http\Request;
+use Bete\Http\Response;
+use Bete\Http\Route;
 use Bete\View\View;
 
-class RegisterWebComponents
+class RegisterHttpComponents
 {
     protected $app;
 

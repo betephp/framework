@@ -1,11 +1,11 @@
 <?php
 
-namespace Bete\Web;
+namespace Bete\Http;
 
 use ReflectionClass;
 use Bete\Foundation\Application;
-use Bete\Exception\WebNotFoundException;
-use Bete\Web\Route;
+use Bete\Exception\HttpNotFoundException;
+use Bete\Http\Route;
 
 class Core
 {
@@ -17,7 +17,7 @@ class Core
         'Bete\Bootstrap\LoadConfiguration',
         'Bete\Bootstrap\ConfigureLog',
         'Bete\Bootstrap\HandleException',
-        'Bete\Bootstrap\RegisterWebComponents',
+        'Bete\Bootstrap\RegisterHttpComponents',
         'Bete\Bootstrap\BootComponents',
     ];
 
@@ -62,7 +62,7 @@ class Core
     {
         $pat = '/^[a-zA-Z_][a-zA-Z0-9_]*(\/([a-zA-Z_][a-zA-Z0-9-_]*)?)?$/';
         if (!preg_match($pat, $route)) {
-            throw new WebNotFoundException(
+            throw new HttpNotFoundException(
                 "The controller/action should follow class convention.");
         }
 
@@ -85,14 +85,14 @@ class Core
         }
 
         $name = ucfirst($id) . 'Controller';
-        $class = 'App\\Web\\' . $name;
+        $class = 'App\\Http\\' . $name;
         if (!class_exists($class)) {
-            throw new WebNotFoundException("The {$name} doesn't exists");
+            throw new HttpNotFoundException("The {$name} doesn't exists");
         }
 
-        if (!is_subclass_of($class, 'Bete\Web\Controller')) {
-            throw new WebNotFoundException(
-                "The controller must extends from Bete\Web\Controller");
+        if (!is_subclass_of($class, 'Bete\Http\Controller')) {
+            throw new HttpNotFoundException(
+                "The controller must extends from Bete\Http\Controller");
         }
 
         $instance = $this->app->make($class, [$this->app, $id]);

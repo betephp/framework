@@ -13,7 +13,7 @@ use Bete\Console\Request;
 
 class MakeController extends Controller
 {
-    public function actionWeb(Request $request)
+    public function actionHttp(Request $request)
     {
         $name = $request->param(1);
 
@@ -26,7 +26,7 @@ class MakeController extends Controller
 
         $name = ucfirst($name) . 'Controller';
 
-        $path .= "/Web/{$name}.php";
+        $path .= "/Http/{$name}.php";
 
         if (file_exists($path)) {
             throw new MakeException("The {$name} alreay exists.");
@@ -35,11 +35,11 @@ class MakeController extends Controller
         $data = [
             '{{controller}}' => $name,
         ];
-        $content = $this->buildContent('web', $data);
+        $content = $this->buildContent('http', $data);
 
         file_put_contents($path, $content);
 
-        echo "The web {$name} is created successfully.\n";
+        echo "The http {$name} is created successfully.\n";
     }
 
     public function actionConsole(Request $request)

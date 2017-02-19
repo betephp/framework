@@ -2,7 +2,7 @@
 
 namespace Bete\Exception;
 
-class WebNotFoundException extends WebException
+class HttpNotFoundException extends HttpException
 {
     public function __construct($message = null, $code = 0, 
         Exception $previous = null)

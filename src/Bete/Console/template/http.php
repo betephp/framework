@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Web;
+namespace App\Http;
 
-use App\Web\Controller;
-use Bete\Web\Request;
+use App\Http\Controller;
+use Bete\Http\Request;
 
 class {{controller}} extends Controller
 {

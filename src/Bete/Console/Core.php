@@ -23,7 +23,7 @@ class Core
 
     protected $internalActions = [
         'Make\\Middleware',
-        'Make\\Web',
+        'Make\\Http',
         'Make\\Console',
         'Make\\Model',
     ];
@@ -104,7 +104,7 @@ class Core
         }
 
         throw new ConsoleException(
-            "Controller must extend from Bete\Web\Controller.");
+            "Controller must extend from Bete\Http\Controller.");
     }
 
 }

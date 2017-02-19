@@ -1,10 +1,10 @@
 <?php
 
-namespace Bete\Web;
+namespace Bete\Http;
 
 use Bete\Foundation\Application;
-use Bete\Exception\WebException;
-use Bete\Exception\WebNotFoundException;
+use Bete\Exception\HttpException;
+use Bete\Exception\HttpNotFoundException;
 
 class Controller
 {
@@ -74,7 +74,7 @@ class Controller
             }
         }
 
-        throw new WebNotFoundException("Can not find {$actionId} action.");
+        throw new HttpNotFoundException("Can not find {$actionId} action.");
     }
 
     public function getMiddlewares(array $rules, $action)
@@ -108,7 +108,7 @@ class Controller
             }
         }
 
-        throw new WebException("Can not determine rule: {$rule}.");
+        throw new HttpException("Can not determine rule: {$rule}.");
     }
 
     public function makeMiddleware($middleware)

@@ -3,7 +3,7 @@
 namespace Bete\View;
 
 use Bete\Foundation\Application;
-use Bete\Web\Controller;
+use Bete\Http\Controller;
 use Bete\Exception\Exception as BaseException;
 
 class View

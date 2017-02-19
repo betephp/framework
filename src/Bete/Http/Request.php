@@ -1,6 +1,6 @@
 <?php
 
-namespace Bete\Web;
+namespace Bete\Http;
 
 use Bete\Foundation\Application;
 

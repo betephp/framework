@@ -51,11 +51,11 @@ class Handler
     }
 
 
-    public function renderForWeb($e)
+    public function renderForHttp($e)
     {
         if ($e instanceof ValidationException) {
             return $this->renderValidationException($e);
-        } elseif ($e instanceof WebNotFoundException) {
+        } elseif ($e instanceof HttpNotFoundException) {
             $statusCode = $e->statusCode;
             header("HTTP/1.0 {$statusCode} NOT FOUND");
             return $this->renderHtmlException($e);
@@ -93,7 +93,7 @@ class Handler
 
     public function renderHtmlException($e)
     {
-        if ($e instanceof WebNotFoundException) {
+        if ($e instanceof HttpNotFoundException) {
             $title = 'Not Found';
         } else {
             $title = 'Whoops, something went wrong.';

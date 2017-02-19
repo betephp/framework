@@ -46,7 +46,7 @@ class HandleException
         if ($this->app->runningInConsole()) {
             $this->renderForConsole($e);
         } else {
-            $this->renderForWeb($e);
+            $this->renderForHttp($e);
         }
     }
 
@@ -55,9 +55,9 @@ class HandleException
         echo $this->getExceptionHandler()->renderForConsole($e);
     }
 
-    public function renderForWeb($e)
+    public function renderForHttp($e)
     {
-        echo $this->getExceptionHandler()->renderForWeb($e);
+        echo $this->getExceptionHandler()->renderForHttp($e);
     }
 
     public function handleShutdown()
